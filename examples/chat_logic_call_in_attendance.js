@@ -1,119 +1,45 @@
-async function specificDate() {
+async function callInAttendance() {s
     
     
 
-    var dates = getNext10Days();
-    console.log(dates);
+   
     chatWindow.talk(specificDateAvailability({dates}), "date_select");
     //
     return;
-    console.log(`Any Recurring Assignments?`);
-
-    if(Math.random() < 0.5){
-        console.log(`yes`);
-
-        console.log(`has conflict?`);
-
-        //Go into conflict flow
-
-
-        if(Math.random() < 0.5){
-            console.log(`Schedule conflict`);
-            // alert("Schedule conflict");
-            return chatWindow.talk(recurringAvailability({assignments, weekday: weekdays[storageGet("weekday")]}), "schedule_conflict");
-        }else{
-            console.log(`No schedule conflict`);
-            return chatWindow.talk(recurringAvailability({assignments, weekday: weekdays[storageGet("weekday")]}), "school_select");
-        }
-    }else{
-        console.log(`No openings`);
-        if(Math.random() < 0.5){
-            console.log(`Already scheduled for next Weekday`);
-            return chatWindow.talk(recurringAvailability({assignments, school: "[[Scheduled School]]", weekday: weekdays[storageGet("weekday")]}), "already_scheduled");
-        }else{
-            console.log(`Not scheduled for next weekday`);
-            if(Math.random() < 0.5){
-                console.log(`There are openings next weekday`);
-                return chatWindow.talk(recurringAvailability({assignments, weekday: weekdays[storageGet("weekday")]}), "single_date_availability");
-            }else{
-                return chatWindow.talk(recurringAvailability({assignments, weekday: weekdays[storageGet("weekday")]}), "nothing_available");
-                console.log(`No openings next weekday`);
-            }
-
-        }
-    }
 }
 
-function specificDateAvailability({dates, boroughs, borough, assignments, date, address, startTime, endTime, school}){
+function callingInAttendanceLogic({dates, boroughs, borough, assignments, date, address, startTime, endTime, school}){
     return {
-        "date_select": {
-            says: [`Select one of the dates you are providing availability.`],
-            reply: [
-                { question: "None", answer: "other_availability" },
-                ...(dates || []).map(function(date, index) {
-                    return { question: date.name, answer: "single_option" + index };
-                }).reverse(),
-                
-            ]
-        },
-        "boroughs_select": {
+        
+        "confirm_school_attendance": {
             says: [
-                `There are openings on ${date} available in the following boroughs. Which borough would you like to check?`
+                "Are you calling in attendance for ${school}?"
             ],
             reply: [
-                {question: "None", answer: "exit"}, 
-                ...(boroughs || []).map(function(borough, index) {
-                return { question: borough.name, answer: "borough_option" + index };
-                })
+                { question: "Yes", answer: "time_select" },
+                { question: "No", answer: "call_out_instead" }
             ]
         },
-        "schools_select": {
+        "call_out_instead": {
             says: [
-                `OK. I found ${(assignments || []).length} openings available for ${date} on ${borough}.`,
-                `Are you available to work at one of the schools listed below?`
+                `You are scheduled to work at ${school} today. Are you instead calling out absent?`
             ],
             reply: [
-                {question: "No / Exit", answer: "exit"},
-                {question: "No / Change Boroughs", answer: "boroughs_select"},
-                ...(assignments || []).map(function(assignment, index) {
-                return { question: assignment.name, answer: "school_option" + index };
-            })
-            ]
-        },
-        "school_confirm": {
-            says: [
-                `Great! You are confirmed at ${school} for ${date}. The address is ${address} and the hours are ${startTime} through ${endTime}. Remember, Calling In Attendance is required when you arrive at the school.`,
-                `Would you like to provide availability for another date?`
-            ],
-            reply: [
-                { question: "Yes", answer: "date_select" },
+                { question: "Yes", answer: "call_out" },
                 { question: "No", answer: "exit" }
-            ]
-        },
-        "already_scheduled": {
-            says: [
-                `You are already scheduled at ${school} on ${date}. Please contact the school nursing line at xxx-xxxxxxx`,
-                `Would you like to provide availability for another SPECIFIC DATE?`
-            ],
-            reply: [
-                { question: "Yes", answer: "ice" },
-                { question: "No", answer: "exit" }
-            ]
-        },
-        "nothing_available": {
-            says: [
-                "Thank you for providing your availability.",
-                `We currently don't have any openings available for you on ${date}. Someone will contact you if an open shift becomes available.`
-            ],
-            reply: [
-                { question: "Start Over", answer: "start_over" }
             ]
         },
         "exit": {
             says: ["Thank you! If you need anything else, just ask."],
             reply: [{question: "Start over", answer: "start_over"} ]
             // End of flow
-        }
+        },
+        "not_scheduled": {
+            says: [
+                `You are not scheduled to work at any school today. Please contact the school nursing line at xxx-xxxxxxx if you have any questions.`
+            ],
+            reply: [{question: "Start over", answer: "start_over"} ]
+        },
     };
 
     

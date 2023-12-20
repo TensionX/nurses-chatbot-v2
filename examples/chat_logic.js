@@ -15,9 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
             ]
         },
-        callInAttendance: {
-            // Define the logic for Call in Attendance
-        },
         reportAbsence: {
             // Define the logic for Report Absence
         },
@@ -30,10 +27,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 
             ]
-        },
-        specificDate: {
-            // Logic for providing availability for a specific date
-            // ...
         },
         recurringDays: {
             says: ["Which weekday are you looking for a recurring assignment?"],
@@ -55,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Start the conversation
-    chatWindow.talk(chatLogic, "recurringDays");
+    chatWindow.talk(chatLogic);
 });
 
 

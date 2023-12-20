@@ -201,5 +201,5 @@ async function getRecurringSchools(day){
             endTime: "15:30",
             firstDay: "Dec 22nd",
         }
-    ];;
+    ];
 }
