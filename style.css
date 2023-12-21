@@ -88,3 +88,7 @@
     border: 1px solid #ddd;
     border-radius: 4px;
 }
+
+.bubble.reply .bubble-content .bubble-button{
+    background: rgb(2, 33, 96) !important;
+}
