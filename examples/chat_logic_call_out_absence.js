@@ -11,49 +11,28 @@ async function callInAttendance() {
 function callingInAttendanceLogic({school, time}){
     return {
         
-        "confirm_school_attendance": {
-            says: [
-                `Are you calling in attendance for ${school}?`
-            ],
-            reply: [
-                { question: "Yes", answer: "time_select" },
-                { question: "No", answer: "call_out_instead" }
-            ]
-        },
-        "confirm_school_attendance_again": {
-            says: [
-                `Oops, looks like you didn't pick a time! Are you calling in attendance for ${school}?`
-            ],
-            reply: [
-                { question: "Yes", answer: "time_select" },
-                { question: "No", answer: "call_out_instead" }
-            ]
-        },
-        "call_out_instead": {
-            says: [
-                `You are scheduled to work at ${school} today. Are you instead calling out absent?`
-            ],
-            reply: [
-                { question: "Yes", answer: "call_out" },
-                { question: "No", answer: "exit" }
-            ]
-        },
-        
         "not_scheduled": {
             says: [
-                `You are not scheduled to work at any school today. Please contact the school nursing line at xxx-xxxxxxx if you have any questions.`
+                `You are not scheduled to work at any school within the next 10 days. Call the school nursing line at xxx-xxx-xxxx if you have any questions.`
             ],
-            reply: [{question: "Start over", answer: "start_over"} ]
+            reply: [
+                { question: "Start over", answer: "start_over" }
+            ]
         },
-        // "time_select_step": {
-        //     says: [
-        //         `What time did you arrive at ${school}? (HH:MM)`
-        //     ],
-        //     reply: [
-        //         { question: "Confirm time", answer: "confirm_time" },
-        //         { question: "Exit", answer: "exit" }
-        //     ]
-        // },
+        "select_absent_date": {
+            says: [
+                "Which assignment are you calling out absent?"
+            ],
+            reply: [
+                ...assignments.map(function(assignment, index) {
+                    return { 
+                        question: assignment.school + ", " + assignment.date, 
+                        answer: "absence_option" + index 
+                    };
+                }),
+                { question: "None", answer: "exit" }
+            ]
+        },
         "exit": {
             says: ["Thank you! If you need anything else, just ask."],
             reply: [{question: "Start over", answer: "start_over"} ]

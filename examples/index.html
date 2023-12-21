@@ -12,6 +12,16 @@
 	<link rel="stylesheet" media="all" href="../component/styles/input.css">
 </head>
 <body>
+    <div id="timeModal" class="modal">
+        <div class="modal-content">
+            What time did you arrive
+at the school?<br>
+
+            <input type="time" id="timeInput" value="">
+            <button id="confirmTime">Confirm</button>
+            <button id="cancelTime">Cancel</button>
+        </div>
+    </div>
     <div id="chat"></div>
 
     <!-- import the JavaScript file -->
@@ -21,6 +31,7 @@
     <script src="chat_logic_recurring_availability.js"></script>
     <script src="chat_logic_single_availability.js"></script>
     <script src="chat_logic_call_in_attendance.js"></script>
+    <script src="chat_logic_call_out_absence.js"></script>
     <style>
         body {
             background: #dcdde0;
@@ -33,5 +44,8 @@
             width: calc(100% - 30px);
         }
         </style>
+
+
+
 </body>
 </html>
