@@ -15,9 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
             ]
         },
-        reportAbsence: {
-            // Define the logic for Report Absence
-        },
         provideAvailability: {
             says: ["Would you like to provide availability for a specific date or recurring days?"],
             reply: [

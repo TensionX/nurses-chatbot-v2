@@ -5,13 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatbot Interface</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" media="all" href="../component/styles/setup.css">
-	<link rel="stylesheet" media="all" href="../component/styles/says.css">
-	<link rel="stylesheet" media="all" href="../component/styles/reply.css">
-	<link rel="stylesheet" media="all" href="../component/styles/typing.css">
-	<link rel="stylesheet" media="all" href="../component/styles/input.css">
+    <link rel="stylesheet" media="all" href="component/styles/setup.css">
+	<link rel="stylesheet" media="all" href="component/styles/says.css">
+	<link rel="stylesheet" media="all" href="component/styles/reply.css">
+	<link rel="stylesheet" media="all" href="component/styles/typing.css">
+	<link rel="stylesheet" media="all" href="component/styles/input.css">
 </head>
 <body>
+    <div id="absenceReasonModal" class="modal">
+        <div class="modal-content">
+            Enter your call out reason
+            <textarea id="absenceReasonInput" placeholder="Enter your reason for absence..."></textarea>
+            <button id="confirmAbsenceReason" class="modal-button confirm-button" disabled>Confirm</button>
+            <button id="cancelAbsenceReason" class="modal-button cancel-button">Cancel</button>
+        </div>
+    </div>
+    
     <div id="timeModal" class="modal">
         <div class="modal-content">
             What time did you arrive
@@ -25,7 +34,7 @@ at the school?<br>
     <div id="chat"></div>
 
     <!-- import the JavaScript file -->
-<script src="../component/Bubbles.js"></script>
+<script src="component/Bubbles.js"></script>
     <script src="core.js"></script>
     <script src="chat_logic.js"></script>
     <script src="chat_logic_recurring_availability.js"></script>

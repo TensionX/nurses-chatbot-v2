@@ -11,28 +11,49 @@ async function callInAttendance() {
 function callingInAttendanceLogic({school, time}){
     return {
         
+        "confirm_school_attendance": {
+            says: [
+                `Are you calling in attendance for ${school}?`
+            ],
+            reply: [
+                { question: "Yes, ready to set attendance time", answer: "time_select" },
+                { question: "No", answer: "call_out_instead" }
+            ]
+        },
+        "confirm_school_attendance_again": {
+            says: [
+                `Oops, looks like you didn't pick a time! Are you calling in attendance for ${school}?`
+            ],
+            reply: [
+                { question: "Yes, ready to set my attendance time", answer: "time_select" },
+                { question: "No", answer: "call_out_instead" }
+            ]
+        },
+        "call_out_instead": {
+            says: [
+                `You are scheduled to work at ${school} today. Are you instead calling out absent?`
+            ],
+            reply: [
+                { question: "Yes", answer: "reportAbsence" },
+                { question: "No", answer: "exit" }
+            ]
+        },
+        
         "not_scheduled": {
             says: [
-                `You are not scheduled to work at any school within the next 10 days. Call the school nursing line at xxx-xxx-xxxx if you have any questions.`
+                `You are not scheduled to work at any school today. Please contact the school nursing line at xxx-xxxxxxx if you have any questions.`
             ],
-            reply: [
-                { question: "Start over", answer: "start_over" }
-            ]
+            reply: [{question: "Start over", answer: "start_over"} ]
         },
-        "select_absent_date": {
-            says: [
-                "Which assignment are you calling out absent?"
-            ],
-            reply: [
-                ...assignments.map(function(assignment, index) {
-                    return { 
-                        question: assignment.school + ", " + assignment.date, 
-                        answer: "absence_option" + index 
-                    };
-                }),
-                { question: "None", answer: "exit" }
-            ]
-        },
+        // "time_select_step": {
+        //     says: [
+        //         `What time did you arrive at ${school}? (HH:MM)`
+        //     ],
+        //     reply: [
+        //         { question: "Confirm time", answer: "confirm_time" },
+        //         { question: "Exit", answer: "exit" }
+        //     ]
+        // },
         "exit": {
             says: ["Thank you! If you need anything else, just ask."],
             reply: [{question: "Start over", answer: "start_over"} ]
@@ -48,7 +69,9 @@ function callingInAttendanceLogic({school, time}){
     
 } 
 
-
+async function call_out_instead(){
+    reportAbsence
+}
 async function time_select(){
     // var current_school = await getCurrentSchool();
     // chatWindow.talk(callingInAttendanceLogic({
@@ -73,14 +96,14 @@ async function getCurrentSchool(){
 document.getElementById('confirmTime').addEventListener('click', async function() {
     var time = document.getElementById('timeInput').value;
     storageSet('call_in_time', time);
-    closeModal();
+    close_time_modal();
     var current_school = await getCurrentSchool();
    
     chatWindow.talk(callingInAttendanceLogic({school: current_school.name}), "call_in_success");
 });
 
 document.getElementById('cancelTime').addEventListener('click', async function() {
-    closeModal();
+    close_time_modal();
     var current_school = await getCurrentSchool();
    
     chatWindow.talk(callingInAttendanceLogic({school: current_school.name}), "confirm_school_attendance_again");
@@ -100,6 +123,6 @@ function open_time_modal() {
     }
 }
 
-function closeModal() {
+function close_time_modal() {
     document.getElementById('timeModal').classList.remove("show");
 }

@@ -44,3 +44,47 @@
 #cancelTime {
     background-color: #f44336; /* Red */
 }
+
+
+#absenceReasonInput {
+    width: 80%;
+    height: 100px;
+    padding: 10px;
+    margin-bottom: 20px; /* Spacing between textarea and button */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+/* Common styles for all modal buttons */
+.modal-button {
+    width: 60%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+/* Specific styles for confirm and cancel buttons */
+.confirm-button {
+    background-color: #4CAF50; /* Green */
+    transition: 0.3s all;
+}
+.confirm-button:disabled {
+    background-color: #cccccc; /* Gray color for disabled state */
+    cursor: default;
+    color: #666666; /* Darker text color for better readability */
+}
+.cancel-button {
+    background-color: #f44336; /* Red */
+}
+
+/* Additional styling for textarea */
+#absenceReasonInput {
+    width: 80%;
+    height: 100px;
+    padding: 10px;
+    margin-bottom: 20px; /* Spacing between textarea and button */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
