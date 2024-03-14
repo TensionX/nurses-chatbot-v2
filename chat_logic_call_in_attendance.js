@@ -89,9 +89,6 @@ function start_over(){
     chatWindow.talk(chatLogic);
 }
 
-async function getCurrentSchool(){
-    return {name: "Greenwood Elementary"};
-}
 
 document.getElementById('confirmTime').addEventListener('click', async function() {
     var time = document.getElementById('timeInput').value;
