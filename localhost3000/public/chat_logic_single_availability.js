@@ -139,16 +139,16 @@ async function confirm_specific_date(index){
 
 async function confirm_borough(index){
     storageSet("borough_index", index);
+    var selected_borough = storageGet("boroughs")[index];
+    storageSet("selected_borough", selected_borough);
     var assignments = await get_borough_assignments();
-    var boroughs = await getBoroughs();
-    console.log(storageGet("date").name);
+    storageSet("assignments", assignments);
     var dates = getNext10Days();
-    console.log(storageGet("date"));
     chatWindow.talk(specificDateAvailability(
         {
             date: storageGet("date").name,
             assignments,
-            boroughs,
+            boroughs: [], //Temp solution, to reduce number of API calls
             dates,
             borough: boroughs[index].name
             // school: assignments[index].name, 
@@ -163,14 +163,17 @@ async function confirm_borough(index){
 
 
 async function confirm_school(index){
-    var assignments = await get_borough_assignments();
-    var boroughs = await getBoroughs();
+    //var assignments = await get_borough_assignments();
+    //var boroughs = await getBoroughs();
+    var assignment = storageGet("assignments")[index];
+    var date = storageGet("date");
+    var confirm_result = await confirmBookingApi(date.value, assignment.eWebRecordID);
     chatWindow.talk(specificDateAvailability(
         {
             date: storageGet("date").name,
 
-            assignments,
-            boroughs,
+            assignments: [], //Temp solution, to reduce number of API calls
+            boroughs: [], //Temp solution, to reduce number of API calls
             borough: boroughs[index].name,
             school: assignments[index].name,
             // school: assignments[index].name, 
@@ -203,11 +206,22 @@ console.log(next10Days);
 
 
 async function getBoroughs(){
-    return [{name: `Manhattan`},{name: `Staten Island`},{name: `The Bronx`}
-    ]
+    var date = storageGet("date").value;
+    var boroughs = await getOpeningsApi({"from": date, "to": date});
+    boroughs = boroughs.map(el => {return {name: el.Borough}});
+    storageSet("boroughs", boroughs);
+    return boroughs;
+    //return [{name: `Manhattan`},{name: `Staten Island`},{name: `The Bronx`}]
 }
 
-async function get_borough_assignments(index){
+async function get_borough_assignments(){
+    var selected_borough = storageGet("selected_borough");
+    var date = storageGet("date");
+    var openings = await getOpeningsApi({"from": selected_borough.value, "to": date.value});
+    openings = openings.filter(opening => opening.Borough == selected_borough);
+
+    return openings;
+
     return [
         {
             name: "Greenwood Elementary",

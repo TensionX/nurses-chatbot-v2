@@ -66,3 +66,21 @@ function prettyDate(dateStr) {
 
     return `${months[month - 1]} ${day}${suffix}`;
 }
+
+function structuredDate(dateStr) {
+    const currentYear = new Date().getFullYear(); // Gets the current year
+    const formattedDate = new Date(`${dateStr} ${currentYear}`);
+  
+    // Ensuring the date is valid
+    if (isNaN(formattedDate)) {
+      return 'Invalid date';
+    }
+  
+    // Formatting to yyyy-mm-dd
+    const year = formattedDate.getFullYear();
+    const month = String(formattedDate.getMonth() + 1).padStart(2, '0'); // +1 because months are 0-indexed
+    const day = String(formattedDate.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  
+  

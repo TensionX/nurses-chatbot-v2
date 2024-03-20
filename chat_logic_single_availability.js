@@ -197,9 +197,6 @@ function getNext10Days() {
     return days;
 }
 
-var next10Days = getNext10Days();
-console.log(next10Days);
-
 
 
 async function getBoroughs(){
