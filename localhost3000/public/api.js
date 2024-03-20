@@ -65,7 +65,7 @@ async function authenticateUserApi(login, password) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
   
-      return await response.json();
+      return (await response.json()).sort((b, a) => new Date(a.date) - new Date(b.date));
     } catch (error) {
       console.error('Error during the API request:', error);
       return null;
@@ -73,7 +73,7 @@ async function authenticateUserApi(login, password) {
   }
   
   // Function to retrieve nurse openings
-  async function getOpeningsApi(dateRange) {
+  async function getOpeningsApi(dateRange, recurring = false) {
     const url = 'https://www.ewebstaffing.com/rcm-test/api/getOpenings.php';
     const sessionToken = await getUserToken();
   
@@ -83,7 +83,7 @@ async function authenticateUserApi(login, password) {
     };
   
     try {
-      const response = await fetch(url, {
+      var response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +95,13 @@ async function authenticateUserApi(login, password) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
   
-      return await response.json();
+      response = await response.json();
+
+      if(recurring){
+        response.filter(el => el.Openings.WeeklyRecurring == true);
+      }
+
+      return response;
     } catch (error) {
       console.error('Error during the API request:', error);
       return null;
@@ -234,16 +240,18 @@ async function authenticateUserApi(login, password) {
 
     // Return the current or updated school information
     console.log(currentSchool);
-    currentSchool = currentSchool.school;
+    currentSchool = currentSchool?.school || null;
     return currentSchool;
 
 
     async function get_current_school(){
-      var schedule = await scheduleStatusApi({"from": "2023-01-01", "to": "2024-01-01"});
+      var schedule = await scheduleStatusApi({"from": today(), "to": today()});
       console.log(schedule);
-      debugger;
-      //Temp solution to return the last availability
-      var current_schedule = schedule.pop();
+      if(!schedule.length){
+        return null;
+      }
+
+      var current_schedule = schedule[0];
       return {date: today, school: {name: current_schedule.scheduledWork.school_name, address: current_schedule.scheduledWork.school_address, eWebRecordID: current_schedule.scheduledWork.eWebRecordID}};
     }
     

@@ -3,7 +3,12 @@ async function callInAttendance() {
     
     var current_school = await getCurrentSchool();
    
-    chatWindow.talk(callingInAttendanceLogic({school: current_school.name}), "confirm_school_attendance");
+    if(!current_school == null){
+        chatWindow.talk(callingInAttendanceLogic({school: current_school.name}), "confirm_school_attendance");
+    }else{
+        chatWindow.talk(callingInAttendanceLogic({school: ""}), "not_scheduled");
+    }
+    
     //
     return;
 }
@@ -16,7 +21,7 @@ function callingInAttendanceLogic({school, time}){
                 `Are you calling in attendance for ${school}?`
             ],
             reply: [
-                { question: "Yes, ready to set attendance time", answer: "time_select" },
+                { question: "Yes", answer: "time_select" },
                 { question: "No", answer: "call_out_instead" }
             ]
         },
@@ -31,7 +36,8 @@ function callingInAttendanceLogic({school, time}){
         },
         "call_out_instead": {
             says: [
-                `You are scheduled to work at ${school} today. Are you instead calling out absent?`
+                `You are scheduled to work at ${school} today.`,
+                `Are you instead calling out absent?`
             ],
             reply: [
                 { question: "Yes", answer: "reportAbsence" },
@@ -41,9 +47,13 @@ function callingInAttendanceLogic({school, time}){
         
         "not_scheduled": {
             says: [
-                `You are not scheduled to work at any school today. Please contact the school nursing line at xxx-xxxxxxx if you have any questions.`
+                `You are not scheduled to work at any school today.`,
+                `Please contact the school nursing line at xxx-xxxxxxx if you have any questions.`
             ],
-            reply: [{question: "Start over", answer: "start_over"} ]
+            reply: [
+                {question: "Start over", answer: "start_over"},
+                {question: "Log out", answer: "log_out"},
+            ]
         },
         // "time_select_step": {
         //     says: [
@@ -55,13 +65,25 @@ function callingInAttendanceLogic({school, time}){
         //     ]
         // },
         "exit": {
-            says: ["Thank you! If you need anything else, just ask."],
-            reply: [{question: "Start over", answer: "start_over"} ]
+            says: [
+                `OK. You have NOT called in attendance for today .`,
+                `If there is an issue, please contact the school nursing line at xxx.xxx.xxxx`
+            ],
+            reply: [
+                {question: "Start over", answer: "start_over"},
+                {question: "Log out", answer: "log_out"},
+         ]
             // End of flow
         },
         "call_in_success": {
-            says: [`Got it. You have successfully called in attendance at ${school}.Have a great day!`],
-            reply: [{question: "Start over", answer: "start_over"} ]
+            says: [
+                `Got it. You have successfully called in attendance at ${school}.`,
+                `Have a great day!`
+            ],
+            reply: [
+                {question: "Start over", answer: "start_over"},
+                {question: "Log out", answer: "log_out"},
+            ]
             // End of flow
         },
     };
@@ -70,7 +92,7 @@ function callingInAttendanceLogic({school, time}){
 } 
 
 async function call_out_instead(){
-    reportAbsence
+    reportAbsence(today());
 }
 async function time_select(){
     // var current_school = await getCurrentSchool();

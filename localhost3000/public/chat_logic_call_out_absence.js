@@ -1,9 +1,17 @@
-async function reportAbsence() {
+async function reportAbsence(specific_date=null) {
     
     
+
     //temp solution
     var assignments = await get_existing_assignments();
    
+    console.log(assignments);
+
+    debugger;
+    if(isDate(specific_date)){
+        var index = assignments.findIndex(el => el.date == specific_date);
+        return handle_absence_option(index);
+    }
     if(assignments.length){
         return chatWindow.talk(callingOutAbsenceLogic({assignments}), "select_absent_date");
     }else{
@@ -19,10 +27,13 @@ function callingOutAbsenceLogic({school, time, assignments, date}){
         
         "not_scheduled": {
             says: [
-                `You are not scheduled to work at any school within the next 10 days. Call the school nursing line at xxx-xxx-xxxx if you have any questions.`
+                `You are not scheduled to work at any school within the next 10 days.`,
+                `Call the school nursing line at xxx-xxx-xxxx if you have any questions.`,
+                `Thank you from RCM Health Care Services.`
             ],
             reply: [
-                { question: "Start over", answer: "start_over" }
+                { question: "Start over", answer: "start_over", },
+                {question: "Log out", answer: "log_out"},
             ]
         },
         "select_absent_date": {
@@ -40,7 +51,7 @@ function callingOutAbsenceLogic({school, time, assignments, date}){
             ]
         },
         "absence_confirm":{
-            says: [`Please confirm that you are calling out absent from ${school} on ${date}`],
+            says: [`Please confirm that you are calling out absent from ${school} on ${prettyDate(date)}`],
             reply: [
                 {question: "Yes, I confirm", answer: "confirm_absence"},
                 {question: "No, go back", answer: "select_absent_date"}
@@ -48,7 +59,7 @@ function callingOutAbsenceLogic({school, time, assignments, date}){
         },
         "absence_confirmation_success": {
             says: [
-                `You have successfully called out absent from ${school} on ${date}.`,
+                `You have successfully called out absent from ${school} on ${prettyDate(date)}.`,
                 `Are you calling out absent for any other dates?`
             ],
             reply: [
@@ -59,21 +70,30 @@ function callingOutAbsenceLogic({school, time, assignments, date}){
         "absence_medical_confirmation_needed": {
             says: [
                 `Any sick time extending into a fourth day requires a doctor's note clearing you to return to work.`, 
-                `Are you sure you want to call out absent for ${date}?`
+                `Are you sure you want to call out absent for ${prettyDate(date)}?`
             ],
             reply: [
-                {question: `Yes, I am ready to provide a reason`, answer: "open_absence_reason_modal"},
+                {question: `Yes`, answer: "open_absence_reason_modal"},
                 {question: "No", answer: "select_absent_date"}
             ]
         },
         "exit": {
-            says: ["Thank you! If you need anything else, just ask."],
-            reply: [{question: "Start over", answer: "start_over"} ]
+            says: [
+                `You have NOT called out for any assignments.`,
+                `Thank you from RCM Health Care Services`
+            ],
+            reply: [
+                {question: "Start over", answer: "start_over"},
+                {question: "Log out", answer: "log_out"},
+         ]
             // End of flow
         },
         "call_in_success": {
             says: [`Got it. You have successfully called in attendance at ${school}.Have a great day!`],
-            reply: [{question: "Start over", answer: "start_over"} ]
+            reply: [
+                {question: "Start over", answer: "start_over"},
+                {question: "Log out", answer: "log_out"},
+         ]
             // End of flow
         },
     };
@@ -186,13 +206,13 @@ async function get_existing_assignments(storage=false){
         return assignments;
     }
     //Temp solution for testing purposes
-    assignments = await scheduleStatusApi({"from": today(-365), "to": today()});
+    assignments = await scheduleStatusApi({"from": today(), "to": today(10)});
     assignments = assignments.slice(0, 8);
 
     console.log(assignments);
     //This is a real query
     //var assignments = await scheduleStatusApi({"from": today(), "to": today(7)});
-    assignments = assignments.sort((a, b) => new Date(a.date) - new Date(b.date)).map(el => {
+    assignments = assignments.map(el => {
         return {
             name: el.scheduledWork.school_name,
             address: el.scheduledWork.school_address,
@@ -266,9 +286,14 @@ function absence_option9(){
 }
 
 async function extended_sick_leave(selected_assignment){
-    return false;
+    //return false;
 
     //Prototypying this, as there is no way to test
 
-    var pastSchedule 
+    var pastSchedule = await scheduleStatusApi({"from": dateDiff(selected_assignment.date, -4), "to": dateDiff(selected_assignment.date, -1)});
+    debugger;
+    if(pastSchedule.find(day => !day.sickLeave) || !pastSchedule.length){
+        return false;
+    }
+    return true;
 }

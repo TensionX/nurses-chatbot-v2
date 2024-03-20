@@ -4,6 +4,13 @@ async function specificDate() {
 
     var dates = getNext10Days();
     console.log(dates);
+    if(storageGet("recurring_to_singe")){
+        var skipDate = storageGet("reccurring_to_single");
+        storageSet("reccurring_to_single", null);
+        var dateIndex = daysBetween(today(), closestWeekDate(storageGet("weekday")));
+        return confirm_specific_date(dateIndex);
+
+    }
     chatWindow.talk(specificDateAvailability({dates}), "date_select");
     //
     return;
@@ -50,7 +57,7 @@ function specificDateAvailability({dates, boroughs, borough, assignments, date, 
             says: [`Select one of the dates you are providing availability.`],
             reply: [
                 { question: "None", answer: "other_availability" },
-                ...(dates || []).map(function(date, index) {
+                ...(getNext10Days() || []).map(function(date, index) {
                     return { question: date.name, answer: "single_option" + index };
                 }).reverse(),
                 
@@ -106,12 +113,16 @@ function specificDateAvailability({dates, boroughs, borough, assignments, date, 
                 `We currently don't have any openings available for you on ${date}. Someone will contact you if an open shift becomes available.`
             ],
             reply: [
-                { question: "Start Over", answer: "start_over" }
+                { question: "Start Over", answer: "start_over" },
+                {question: "Log out", answer: "log_out"},
             ]
         },
         "exit": {
             says: ["Thank you! If you need anything else, just ask."],
-            reply: [{question: "Start over", answer: "start_over"} ]
+            reply: [
+                {question: "Start over", answer: "start_over"} ,
+                {question: "Log out", answer: "log_out"},
+            ]
             // End of flow
         }
     };
@@ -123,34 +134,50 @@ async function confirm_specific_date(index){
     storageSet("date", getNext10Days()[index]);
     
     var boroughs = await getBoroughs();
-    chatWindow.talk(specificDateAvailability(
-        {
-            boroughs,
-            date: getNext10Days()[index].name,
-            // school: assignments[index].name, 
-            // address: assignments[index].address, 
-            // startTime: assignments[index].startTime, 
-            // endTime: assignments[index].endTime, 
-            // weekday: weekdays[storageGet("weekday")], 
-            // firstDay: assignments[index].firstDay 
-        }
-        ), "boroughs_select");
+    if(boroughs.length){
+        chatWindow.talk(specificDateAvailability(
+            {
+                boroughs,
+                date: getNext10Days()[index].name,
+                // school: assignments[index].name, 
+                // address: assignments[index].address, 
+                // startTime: assignments[index].startTime, 
+                // endTime: assignments[index].endTime, 
+                // weekday: weekdays[storageGet("weekday")], 
+                // firstDay: assignments[index].firstDay 
+            }
+            ), "boroughs_select");
+    }else{
+        chatWindow.talk(specificDateAvailability(
+            {
+                boroughs,
+                date: getNext10Days()[index].name,
+                // school: assignments[index].name, 
+                // address: assignments[index].address, 
+                // startTime: assignments[index].startTime, 
+                // endTime: assignments[index].endTime, 
+                // weekday: weekdays[storageGet("weekday")], 
+                // firstDay: assignments[index].firstDay 
+            }
+            ), "nothing_available");
+    }
+    
 }
 
 async function confirm_borough(index){
     storageSet("borough_index", index);
+    var selected_borough = storageGet("boroughs")[index];
+    storageSet("selected_borough", selected_borough);
     var assignments = await get_borough_assignments();
-    var boroughs = await getBoroughs();
-    console.log(storageGet("date").name);
+    storageSet("assignments", assignments);
     var dates = getNext10Days();
-    console.log(storageGet("date"));
     chatWindow.talk(specificDateAvailability(
         {
             date: storageGet("date").name,
             assignments,
-            boroughs,
+            boroughs: [], //Temp solution, to reduce number of API calls
             dates,
-            borough: boroughs[index].name
+            borough: selected_borough.name
             // school: assignments[index].name, 
             // address: assignments[index].address, 
             // startTime: assignments[index].startTime, 
@@ -163,20 +190,23 @@ async function confirm_borough(index){
 
 
 async function confirm_school(index){
-    var assignments = await get_borough_assignments();
-    var boroughs = await getBoroughs();
+    //var assignments = await get_borough_assignments();
+    //var boroughs = await getBoroughs();
+    var assignment = storageGet("assignments")[index];
+    var date = storageGet("date");
+    var confirm_result = await confirmBookingApi(date.value, assignment.eWebRecordID);
     chatWindow.talk(specificDateAvailability(
         {
             date: storageGet("date").name,
 
-            assignments,
-            boroughs,
-            borough: boroughs[index].name,
-            school: assignments[index].name,
+            assignments: [], //Temp solution, to reduce number of API calls
+            boroughs: [], //Temp solution, to reduce number of API calls
+            borough: storageGet("selected_borough").name,
+            school: assignment.name,
             // school: assignments[index].name, 
-            address: assignments[index].address, 
-            startTime: assignments[index].startTime, 
-            endTime: assignments[index].endTime, 
+            address: assignment.address, 
+            startTime: assignment.startTime, 
+            endTime: assignment.endTime, 
             // weekday: weekdays[storageGet("weekday")], 
             // firstDay: assignments[index].firstDay 
         }
@@ -197,14 +227,52 @@ function getNext10Days() {
     return days;
 }
 
+var next10Days = getNext10Days();
+console.log(next10Days);
+
 
 
 async function getBoroughs(){
-    return [{name: `Manhattan`},{name: `Staten Island`},{name: `The Bronx`}
-    ]
+    var date = storageGet("date").value;
+    
+    
+    
+    //Temp for test only
+    var boroughs = await getOpeningsApi({"from": date, "to": date});
+    // var boroughs = await getOpeningsApi({"from": "2024-03-01", "to": "2024-03-20"});
+
+
+    boroughs = boroughs.map(el => {return {name: el.Borough}});
+    storageSet("boroughs", boroughs);
+    return boroughs;
+    //return [{name: `Manhattan`},{name: `Staten Island`},{name: `The Bronx`}]
 }
 
-async function get_borough_assignments(index){
+async function get_borough_assignments(){
+    debugger;
+
+    var selected_borough = storageGet("selected_borough");
+    var date = storageGet("date");
+
+    //Temp for test only
+    var openings = await getOpeningsApi({"from": date.value, "to": date.value});
+    // var openings = await getOpeningsApi({"from": "2024-03-01", "to": "2024-03-20"});
+
+
+    openings = openings.filter(opening => opening.Borough == selected_borough.name);
+
+    openings = openings.map(opening =>{
+        return {
+            name: opening.Openings.School,
+            address: opening.Openings.Address,
+            startTime: opening.Openings.StartTime,
+            endTime: "'to be determined'"
+
+        }
+    });
+
+    return openings;
+
     return [
         {
             name: "Greenwood Elementary",

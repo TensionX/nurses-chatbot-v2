@@ -9,35 +9,41 @@ async function handleRecurringDay(day) {
     
     console.log(`Any Recurring Assignments?`);
 
-    if(Math.random() < 0.5){
-        console.log(`yes`);
+    if(assignments.length){
+        
 
-        console.log(`has conflict?`);
+        
 
         //Go into conflict flow
 
 
-        if(Math.random() < 0.5){
-            console.log(`Schedule conflict`);
-            // alert("Schedule conflict");
+        if(await haveConflict(assignments)){
             return chatWindow.talk(recurringAvailability({assignments, weekday: weekdays[storageGet("weekday")]}), "schedule_conflict");
         }else{
-            console.log(`No schedule conflict`);
             return chatWindow.talk(recurringAvailability({assignments, weekday: weekdays[storageGet("weekday")]}), "school_select");
         }
+
+        
     }else{
+        //No openings
         console.log(`No openings`);
-        if(Math.random() < 0.5){
-            console.log(`Already scheduled for next Weekday`);
-            return chatWindow.talk(recurringAvailability({assignments, school: "[[Scheduled School]]", weekday: weekdays[storageGet("weekday")]}), "already_scheduled");
+        var date = closestWeekDate(storageGet("weekday"));
+        if(await scheduledFor(date)){
+            debugger;
+
+            //Already scheduled for next WeekDay
+            var school = (await scheduleStatusApi({"from": date, "to": date}))[0].scheduledWork.school_name;
+            return chatWindow.talk(recurringAvailability({assignments, school, weekday: weekdays[storageGet("weekday")]}), "already_scheduled");
         }else{
-            console.log(`Not scheduled for next weekday`);
-            if(Math.random() < 0.5){
+
+            //Not scheduled for next WeekDay
+
+            var nextWeekdayAvailability = (await scheduleStatusApi({"from": closestWeekDate(storageGet("weekday")), "to": closestWeekDate(storageGet("weekday"))})).length;
+            if(nextWeekdayAvailability){
                 console.log(`There are openings next weekday`);
                 return chatWindow.talk(recurringAvailability({assignments, weekday: weekdays[storageGet("weekday")]}), "single_date_availability");
             }else{
                 return chatWindow.talk(recurringAvailability({assignments, weekday: weekdays[storageGet("weekday")]}), "nothing_available");
-                console.log(`No openings next weekday`);
             }
 
         }
@@ -126,7 +132,10 @@ function recurringAvailability({assignments, weekday, firstDay, address, startTi
         },
         "exit": {
             says: ["Thank you! If you need anything else, just ask."],
-            reply: [{question: "Start over", answer: "start_over"} ]
+            reply: [
+                {question: "Start over", answer: "start_over"},
+                {question: "Log out", answer: "log_out"},
+            ]
             // End of flow
         }
     };
@@ -138,7 +147,8 @@ function start_recurring(){
     chatWindow.talk(chatLogic, "recurringDays");
 }
 function start_single_weekday(){
-    alert(`Start single date, skip date choice`);
+    // alert(`Start single date, skip date choice`);
+    storageSet("recurring_to_singe", closestWeekDate(storageGet("weekday")));
     chatWindow.talk(chatLogic, "specificDate");
 }
 function start_over(){
@@ -168,6 +178,13 @@ function recurring_option6(){
 async function confirm_recurring_school(index){
     console.log(`Confirming the school ${index}`);
     var assignments = storageGet("assignments");
+
+    var assignment = storageGet("assignments")[index];
+    var date = storageGet("date");
+
+    var confirm_result = await confirmBookingApi(date.value, assignment.eWebRecordID);
+
+
     chatWindow.talk(recurringAvailability(
         {assignments: [], 
             school: assignments[index].name, 
@@ -179,27 +196,33 @@ async function confirm_recurring_school(index){
         ), "school_confirm");
 }
 async function getRecurringSchools(day){
-    return [
-        {
-            name: "Greenwood Elementary",
-            address: "1234 Pine Street",
-            startTime: "08:00",
-            endTime: "15:00",
-            firstDay: "Dec 20th",
-        },
-        {
-            name: "Sunnydale High",
-            address: "5678 Oak Avenue",
-            startTime: "09:00",
-            endTime: "16:00",
-            firstDay: "Dec 21st",
-        },
-        {
-            name: "Riverside Middle School",
-            address: "9012 Elm Boulevard",
-            startTime: "08:30",
-            endTime: "15:30",
-            firstDay: "Dec 22nd",
+
+    var weekday = storageGet("weekday");
+
+
+    //Temp for test only
+    var openings = await getOpeningsApi({"from": closestWeekDate(weekday), "to": closestWeekDate(weekday)}, recurring = true);
+    // var openings = await getOpeningsApi({"from": today(-356), "to": today()}, recurring = false);
+
+    openings = openings.map(opening =>{
+        return {
+            name: opening.Openings.School,
+            address: opening.Openings.Address,
+            startTime: opening.Openings.StartTime,
+            endTime: "'to be determined'"
+
         }
-    ];
+    });
+   return openings;
+}
+
+async function haveConflict(){
+
+    return false;
+}
+
+
+async function scheduledFor(date){
+    var result = await scheduleStatusApi({"from": date, "to": date});
+    return result.length ? true : false;
 }
