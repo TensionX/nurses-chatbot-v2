@@ -57,22 +57,59 @@ function today(days=0) {
 
 
 function prettyDate(dateStr) {
-    if(!dateStr || !dateStr.split("-").length){
+    if (!dateStr || !dateStr.split("-").length) {
         return dateStr;
     }
+
+    // Get the current date components
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth(); // Note: January is 0, February is 1, and so on.
+    const currentDay = currentDate.getDate();
+
+    // Calculate tomorrow's date components
+    const tomorrowDate = new Date(currentDate);
+    tomorrowDate.setDate(currentDate.getDate() + 1);
+    const tomorrowYear = tomorrowDate.getFullYear();
+    const tomorrowMonth = tomorrowDate.getMonth();
+    const tomorrowDay = tomorrowDate.getDate();
+
+    // Parse the input date string
+    const [inputYear, inputMonth, inputDay] = dateStr.split('-').map(num => parseInt(num, 10));
+
+    // Check for "TODAY"
+    if (inputYear === currentYear && inputMonth === currentMonth + 1 && inputDay === currentDay) {
+        return "TODAY";
+    }
+    // Check for "TOMORROW"
+    else if (inputYear === tomorrowYear && inputMonth === tomorrowMonth + 1 && inputDay === tomorrowDay) {
+        return "TOMORROW";
+    }
+
+    // If not today or tomorrow, proceed with the original logic
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const [year, month, day] = dateStr.split('-').map(num => parseInt(num, 10));
+    const v = inputDay % 100;
 
-    const suffixes = ["th", "st", "nd", "rd"];
-    const v = day % 100;
-    const suffix = suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0];
-
-    return `${months[month - 1]} ${day}${suffix}`;
+    return `${months[inputMonth - 1]} ${inputDay}`;
 }
 
+
 function structuredDate(dateStr) {
-    const currentYear = new Date().getFullYear(); // Gets the current year
-    const formattedDate = new Date(`${dateStr} ${currentYear}`);
+    const currentDate = new Date();
+    let formattedDate;
+  
+    // Handle "TODAY" and "TOMORROW" cases
+    if (dateStr.toUpperCase() === "TODAY") {
+      formattedDate = currentDate;
+    } else if (dateStr.toUpperCase() === "TOMORROW") {
+      // Create a date for tomorrow
+      formattedDate = new Date(currentDate);
+      formattedDate.setDate(currentDate.getDate() + 1);
+    } else {
+      // Attempt to parse the date string for any other case
+      const currentYear = currentDate.getFullYear();
+      formattedDate = new Date(`${dateStr} ${currentYear}`);
+    }
   
     // Ensuring the date is valid
     if (isNaN(formattedDate)) {
@@ -85,6 +122,7 @@ function structuredDate(dateStr) {
     const day = String(formattedDate.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
+  
   
   
   function dateDiff(initialDate, daysToMove) {

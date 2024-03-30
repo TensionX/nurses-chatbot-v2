@@ -32,7 +32,7 @@ async function authenticateUserApi(login, password) {
   
       response = await response.json();
       storageSet("session_token", response.sessionToken);
-
+      storageSet("user_name", response.name || null);
       return true;
     } catch (error) {
       console.error('Error during the API request:', error);

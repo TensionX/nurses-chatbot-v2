@@ -20,6 +20,9 @@
   transition: all 200ms;
   box-sizing: content-box;
 }
+.bubble:not(.bubble-typing), .bubble .bubble-button{
+  width: 65% !important;
+}
 .bubble .bubble-content {
   transition: opacity 150ms;
 }
