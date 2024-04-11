@@ -212,8 +212,8 @@ async function getRecurringSchools(day){
         return {
             name: opening.Openings.School,
             address: opening.Openings.Address,
-            startTime: opening.Openings.StartTime,
-            endTime: "'to be determined'"
+            startTime: opening.Openings.StartTime || "to be determined",
+            endTime: opening.Openings.EndTime || "to be determined"
 
         }
     });

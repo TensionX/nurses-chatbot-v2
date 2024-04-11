@@ -23,7 +23,7 @@ async function init(){
 
         chatLogic = {
             ice: {
-                says: [`Hello! ${scheduledText}Please select from the following:`],
+                says: [`Hello, ${storageGet("user_name") || "Dear User"}! ${scheduledText}Please select from the following:`],
                 reply: [
                     {question: "Providing Availability", answer: "provideAvailability"},
                     {question: "Calling Out Absent", answer: "reportAbsence"},
@@ -36,9 +36,11 @@ async function init(){
             provideAvailability: {
                 says: ["Would you like to provide availability for a specific date or recurring days?"],
                 reply: [
-                    {question: "Done / Exit", answer: "ice"},
-                    {question: "Recurring Days", answer: "recurringDays"},
                     {question: "Specific Date", answer: "specificDate"},
+                    {question: "Recurring Days", answer: "recurringDays"},
+                    {question: "Done / Exit", answer: "ice"},
+                    
+                    
                     
                     
                 ]
@@ -46,12 +48,17 @@ async function init(){
             recurringDays: {
                 says: ["Which weekday are you looking for a recurring assignment?"],
                 reply: [
-                    {question: "None/Exit", answer: "exit"},
-                    {question: "Every Friday", answer: "recurringFriday"},
-                    {question: "Every Thursday", answer: "recurringThursday"},
-                    {question: "Every Wednesday", answer: "recurringWednesday"},
-                    {question: "Every Tuesday", answer: "recurringTuesday"},
                     {question: "Every Monday", answer: "recurringMonday"},
+                    {question: "Every Tuesday", answer: "recurringTuesday"},
+                    {question: "Every Wednesday", answer: "recurringWednesday"},
+                    {question: "Every Thursday", answer: "recurringThursday"},
+                    {question: "Every Friday", answer: "recurringFriday"},
+                    {question: "None/Exit", answer: "exit"},
+                    
+                    
+                    
+                    
+                    
     
                 ]
             },

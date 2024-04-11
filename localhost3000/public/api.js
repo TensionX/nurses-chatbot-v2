@@ -214,7 +214,7 @@ async function authenticateUserApi(login, password) {
 
   async function getCurrentSchool(){
 
-
+    debugger;
     // //Placeholder
     // return {name: "Greenwood Elementary", address: "123 Street", eWebRecordID: 123152346};
 
@@ -252,7 +252,7 @@ async function authenticateUserApi(login, password) {
       }
 
       var current_schedule = schedule[0];
-      return {date: today, school: {name: current_schedule.scheduledWork.school_name, address: current_schedule.scheduledWork.school_address, eWebRecordID: current_schedule.scheduledWork.eWebRecordID}};
+      return {date: today(), school: {name: current_schedule.scheduledWork.school_name, address: current_schedule.scheduledWork.school_address, eWebRecordID: current_schedule.scheduledWork.eWebRecordID}};
     }
     
   }

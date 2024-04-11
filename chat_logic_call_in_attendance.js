@@ -3,7 +3,7 @@ async function callInAttendance() {
     
     var current_school = await getCurrentSchool();
    
-    if(!current_school == null){
+    if(current_school != null){
         chatWindow.talk(callingInAttendanceLogic({school: current_school.name}), "confirm_school_attendance");
     }else{
         chatWindow.talk(callingInAttendanceLogic({school: ""}), "not_scheduled");

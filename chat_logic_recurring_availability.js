@@ -62,10 +62,12 @@ function recurringAvailability({assignments, weekday, firstDay, address, startTi
         "school_select": {
             says: [`For Every ${weekday}, please select one of the following schools:`],
             reply: [
-                { question: "None", answer: "other_availability" },
+                
                 ...assignments.map(function(school, index) {
                     return { question: school.name, answer: "recurring_option" + index };
                 }).reverse(),
+
+                { question: "None", answer: "other_availability" },
                 
             ]
         },
@@ -75,16 +77,18 @@ function recurringAvailability({assignments, weekday, firstDay, address, startTi
                 `Would you like to provide availability for any additional recurring assignments?`
             ],
             reply: [
+                
+                { question: "Yes", answer: "start_recurring" },
                 { question: "No", answer: "exit" },
-                { question: "Yes", answer: "start_recurring" }
             ]
         },
         "other_availability": {
             says: [`Would you like to provide availability for any additional recurring assignments?`
         ],
         reply: [
+            
+            { question: "Yes", answer: "start_recurring" },
             { question: "No", answer: "exit" },
-            { question: "Yes", answer: "start_recurring" }
         ]
         },
 
@@ -208,8 +212,8 @@ async function getRecurringSchools(day){
         return {
             name: opening.Openings.School,
             address: opening.Openings.Address,
-            startTime: opening.Openings.StartTime,
-            endTime: "'to be determined'"
+            startTime: opening.Openings.StartTime || "to be determined",
+            endTime: opening.Openings.EndTime || "to be determined"
 
         }
     });

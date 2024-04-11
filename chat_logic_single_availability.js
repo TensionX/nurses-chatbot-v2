@@ -56,22 +56,32 @@ function specificDateAvailability({dates, boroughs, borough, assignments, date, 
         "date_select": {
             says: [`Select one of the dates you are providing availability.`],
             reply: [
-                { question: "None", answer: "other_availability" },
+                
                 ...(getNext10Days() || []).map(function(date, index) {
                     return { question: date.name, answer: "single_option" + index };
-                }).reverse(),
-                
+                }),
+                { question: "None", answer: "other_availability" },
             ]
+        },
+        "other_availability": {
+            says: [`OK! Would you like to provide availability for any other assignments?`
+        ],
+        reply: [
+            
+            { question: "Yes", answer: "date_select" },
+            { question: "No", answer: "exit" },
+        ]
         },
         "boroughs_select": {
             says: [
                 `There are openings on ${date} available in the following boroughs. Which borough would you like to check?`
             ],
             reply: [
-                {question: "None", answer: "exit"}, 
+                
                 ...(boroughs || []).map(function(borough, index) {
                 return { question: borough.name, answer: "borough_option" + index };
-                })
+                }),
+                {question: "None", answer: "exit"}, 
             ]
         },
         "schools_select": {
@@ -80,11 +90,13 @@ function specificDateAvailability({dates, boroughs, borough, assignments, date, 
                 `Are you available to work at one of the schools listed below?`
             ],
             reply: [
-                {question: "No / Exit", answer: "exit"},
-                {question: "No / Change Boroughs", answer: "boroughs_select"},
+                
+                
                 ...(assignments || []).map(function(assignment, index) {
                 return { question: assignment.name, answer: "school_option" + index };
-            })
+            }),
+            {question: "No / Change Boroughs", answer: "another_borough"},
+            {question: "No / Exit", answer: "exit"},
             ]
         },
         "school_confirm": {
@@ -129,7 +141,22 @@ function specificDateAvailability({dates, boroughs, borough, assignments, date, 
 
     
 } 
+async function another_borough(){
 
+    var boroughs = await getBoroughs();
+    chatWindow.talk(specificDateAvailability(
+        {
+            boroughs,
+            date: storageGet("date").name,
+            // school: assignments[index].name, 
+            // address: assignments[index].address, 
+            // startTime: assignments[index].startTime, 
+            // endTime: assignments[index].endTime, 
+            // weekday: weekdays[storageGet("weekday")], 
+            // firstDay: assignments[index].firstDay 
+        }
+        ), "boroughs_select");
+}
 async function confirm_specific_date(index){
     storageSet("date", getNext10Days()[index]);
     
@@ -222,7 +249,7 @@ function getNext10Days() {
         var dayName = date.toLocaleDateString("en-US", { month: 'short', day: 'numeric' }); // e.g., "Dec 20"
         var dayValue = date.toISOString().split('T')[0]; // Format: "2023-12-20"
 
-        days.push({ name: dayName, value: dayValue });
+        days.push({ name: prettyDate(dayValue), value: dayValue });
     }
     return days;
 }
@@ -242,7 +269,11 @@ async function getBoroughs(){
     // var boroughs = await getOpeningsApi({"from": "2024-03-01", "to": "2024-03-20"});
 
 
-    boroughs = boroughs.map(el => {return {name: el.Borough}});
+    boroughs = boroughs.map(el => {return {name: el.Borough}})
+    //Unique Boroughs
+    .filter((obj, index, self) =>
+    self.map(obj => obj.name).indexOf(obj.name) === index
+  );
     storageSet("boroughs", boroughs);
     return boroughs;
     //return [{name: `Manhattan`},{name: `Staten Island`},{name: `The Bronx`}]
@@ -265,8 +296,8 @@ async function get_borough_assignments(){
         return {
             name: opening.Openings.School,
             address: opening.Openings.Address,
-            startTime: opening.Openings.StartTime,
-            endTime: "'to be determined'"
+            startTime: opening.Openings.StartTime || "'to be determined'",
+            endTime: opening.Openings.EndTime || "'to be determined'"
 
         }
     });

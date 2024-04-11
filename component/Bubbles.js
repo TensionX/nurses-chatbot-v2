@@ -138,7 +138,7 @@ function Bubbles(container, self, options) {
     questionsHTML = ""
     if (!turn) return
     if (turn.reply !== undefined) {
-      turn.reply.reverse()
+      // turn.reply.reverse()
       for (var i = 0; i < turn.reply.length; i++) {
         ;(function(el, count) {
           questionsHTML +=

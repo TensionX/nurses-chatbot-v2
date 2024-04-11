@@ -1,5 +1,5 @@
 async function reportAbsence(specific_date=null) {
-    
+    storageSet("called_out_absent", false);
     
 
     //temp solution
@@ -79,7 +79,7 @@ function callingOutAbsenceLogic({school, time, assignments, date}){
         },
         "exit": {
             says: [
-                `You have NOT called out for any assignments.`,
+                ...(storageGet("called_out_absent") == true ? [] : [`You have NOT called out for any assignments.`]),
                 `Thank you from RCM Health Care Services`
             ],
             reply: [
@@ -106,6 +106,7 @@ async function confirm_absence(){
 
     //This is where we call API to confirm absence
     var result = await callOutAbsenceApi(selected_assignment.date, "");
+    storageSet("called_out_absent", true);
     chatWindow.talk(callingOutAbsenceLogic({
         assignments: await get_existing_assignments(),
         date: selected_assignment.date,

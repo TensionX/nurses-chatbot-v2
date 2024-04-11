@@ -95,7 +95,7 @@ function specificDateAvailability({dates, boroughs, borough, assignments, date, 
                 ...(assignments || []).map(function(assignment, index) {
                 return { question: assignment.name, answer: "school_option" + index };
             }),
-            {question: "No / Change Boroughs", answer: "boroughs_select"},
+            {question: "No / Change Boroughs", answer: "another_borough"},
             {question: "No / Exit", answer: "exit"},
             ]
         },
@@ -141,7 +141,22 @@ function specificDateAvailability({dates, boroughs, borough, assignments, date, 
 
     
 } 
+async function another_borough(){
 
+    var boroughs = await getBoroughs();
+    chatWindow.talk(specificDateAvailability(
+        {
+            boroughs,
+            date: storageGet("date").name,
+            // school: assignments[index].name, 
+            // address: assignments[index].address, 
+            // startTime: assignments[index].startTime, 
+            // endTime: assignments[index].endTime, 
+            // weekday: weekdays[storageGet("weekday")], 
+            // firstDay: assignments[index].firstDay 
+        }
+        ), "boroughs_select");
+}
 async function confirm_specific_date(index){
     storageSet("date", getNext10Days()[index]);
     
@@ -281,8 +296,8 @@ async function get_borough_assignments(){
         return {
             name: opening.Openings.School,
             address: opening.Openings.Address,
-            startTime: opening.Openings.StartTime,
-            endTime: "'to be determined'"
+            startTime: opening.Openings.StartTime || "'to be determined'",
+            endTime: opening.Openings.EndTime || "'to be determined'"
 
         }
     });
