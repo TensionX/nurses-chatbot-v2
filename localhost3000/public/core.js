@@ -56,43 +56,48 @@ function today(days=0) {
 
 
 
-function prettyDate(dateStr) {
-    if (!dateStr || !dateStr.split("-").length) {
+function prettyDate(dateStr, weekday = false) {
+    if (!dateStr || dateStr.split("-").length !== 3) {
         return dateStr;
     }
 
     // Get the current date components
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth(); // Note: January is 0, February is 1, and so on.
+    const currentMonth = currentDate.getMonth() + 1; // Note: January is 0, February is 1, and so on.
     const currentDay = currentDate.getDate();
 
     // Calculate tomorrow's date components
     const tomorrowDate = new Date(currentDate);
     tomorrowDate.setDate(currentDate.getDate() + 1);
     const tomorrowYear = tomorrowDate.getFullYear();
-    const tomorrowMonth = tomorrowDate.getMonth();
+    const tomorrowMonth = tomorrowDate.getMonth() + 1;
     const tomorrowDay = tomorrowDate.getDate();
 
     // Parse the input date string
     const [inputYear, inputMonth, inputDay] = dateStr.split('-').map(num => parseInt(num, 10));
 
     // Check for "TODAY"
-    if (inputYear === currentYear && inputMonth === currentMonth + 1 && inputDay === currentDay) {
+    if (inputYear === currentYear && inputMonth === currentMonth && inputDay === currentDay) {
         return "TODAY";
     }
     // Check for "TOMORROW"
-    else if (inputYear === tomorrowYear && inputMonth === tomorrowMonth + 1 && inputDay === tomorrowDay) {
+    else if (inputYear === tomorrowYear && inputMonth === tomorrowMonth && inputDay === tomorrowDay) {
         return "TOMORROW";
     }
 
     // If not today or tomorrow, proceed with the original logic
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const v = inputDay % 100;
+    const inputDate = new Date(inputYear, inputMonth - 1, inputDay);
+    const weekdayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const dayName = weekdayNames[inputDate.getDay()];
 
-    return `${months[inputMonth - 1]} ${inputDay}`;
+    if (weekday) {
+        return `${dayName}, ${months[inputMonth - 1]} ${inputDay}`;
+    } else {
+        return `${months[inputMonth - 1]} ${inputDay}`;
+    }
 }
-
 
 function structuredDate(dateStr) {
     const currentDate = new Date();

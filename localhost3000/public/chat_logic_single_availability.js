@@ -54,13 +54,31 @@ async function specificDate() {
 function specificDateAvailability({dates, boroughs, borough, assignments, date, address, startTime, endTime, school}){
     return {
         "date_select": {
-            says: [`Select one of the dates you are providing availability.`],
+            says: [
+                
+                `Select one of the dates you are providing availability.`
+            ],
             reply: [
                 
-                ...(getNext10Days() || []).map(function(date, index) {
+                ...(getNext10Days(weekday = true) || []).map(function(date, index) {
                     return { question: date.name, answer: "single_option" + index };
                 }),
-                { question: "None", answer: "other_availability" },
+                { question: `Beyond ${getNext10Days(weekday = true).pop().name}`, answer: "date_select_beyond"},
+                { question: "None / Done", answer: "exit" },
+            ]
+        },
+        "date_select_beyond": {
+            says: [
+                `Please contact your recruiter to provide availability beyond ${getNext10Days(weekday = true).pop().name}.`,
+                `Select one of the dates you are providing availability.`
+            ],
+            reply: [
+                
+                ...(getNext10Days(weekday = true) || []).map(function(date, index) {
+                    return { question: date.name, answer: "single_option" + index };
+                }),
+                { question: `Beyond ${getNext10Days(weekday = true).pop().name}`, answer: "beyond_10_days"},
+                { question: "None / Done", answer: "exit" },
             ]
         },
         "other_availability": {
@@ -101,28 +119,30 @@ function specificDateAvailability({dates, boroughs, borough, assignments, date, 
         },
         "school_confirm": {
             says: [
-                `Great! You are confirmed at ${school} for ${date}. The address is ${address} and the hours are ${startTime} through ${endTime}. Remember, Calling In Attendance is required when you arrive at the school.`,
-                `Would you like to provide availability for another date?`
+                `Someone will contact you to confirm your assignment.`,
+                // `Great! You are confirmed at ${school} for ${date}. The address is ${address} and the hours are ${startTime} through ${endTime}. Remember, Calling In Attendance is required when you arrive at the school.`,
+                // `Would you like to provide availability for another date?`
             ],
             reply: [
-                { question: "Yes", answer: "date_select" },
-                { question: "No", answer: "exit" }
+                { question: "Done / Exit", answer: "ice" },
+                // { question: "No", answer: "exit" }
             ]
         },
         "already_scheduled": {
             says: [
-                `You are already scheduled at ${school} on ${date}. Please contact the school nursing line at xxx-xxxxxxx`,
+                `You are already scheduled at ${school} ${(prettyDate(date)?.toLowerCase() == "today" || prettyDate(date)?.toLowerCase() == "tomorrow") ? prettyDate(date) : `on ${prettyDate(date)}`}. Please contact your recruiter if you have any questions.`,
                 `Would you like to provide availability for another SPECIFIC DATE?`
             ],
             reply: [
-                { question: "Yes", answer: "ice" },
-                { question: "No", answer: "exit" }
+                { question: "Yes", answer: "specificDate" },
+                { question: "No", answer: "exit_already_scheduled" }
             ]
         },
         "nothing_available": {
             says: [
                 "Thank you for providing your availability.",
-                `We currently don't have any openings available for you on ${date}. Someone will contact you if an open shift becomes available.`
+                `We currently don't have any openings available for you ${(prettyDate(date)?.toLowerCase() == "today" || prettyDate(date)?.toLowerCase() == "tomorrow") ? prettyDate(date) : `on ${prettyDate(date)}`}.
+                <br><br>Someone will contact you if an open shift becomes available.`
             ],
             reply: [
                 { question: "Start Over", answer: "start_over" },
@@ -130,7 +150,17 @@ function specificDateAvailability({dates, boroughs, borough, assignments, date, 
             ]
         },
         "exit": {
-            says: ["Thank you! If you need anything else, just ask."],
+            says: ["Thank you from RCM Health Care Services."],
+            reply: [
+                {question: "Start over", answer: "start_over"} ,
+                {question: "Log out", answer: "log_out"},
+            ]
+            // End of flow
+        },
+        "exit_already_scheduled": {
+            says: [ `${storageGet("provided_availability") == true ? "" : "You have <b>NOT</b> added any availability."}`,
+                "Thank you from RCM Health Care Services."
+            ],
             reply: [
                 {question: "Start over", answer: "start_over"} ,
                 {question: "Log out", answer: "log_out"},
@@ -158,6 +188,12 @@ async function another_borough(){
         ), "boroughs_select");
 }
 async function confirm_specific_date(index){
+    var scheduled = await scheduledFor(today());
+    if(scheduled){
+        scheduled = scheduled[0];
+        return chatWindow.talk(specificDateAvailability({date: scheduled.date, school: scheduled.scheduledWork.school_name }), "already_scheduled");
+    }
+
     storageSet("date", getNext10Days()[index]);
     
     var boroughs = await getBoroughs();
@@ -222,6 +258,7 @@ async function confirm_school(index){
     var assignment = storageGet("assignments")[index];
     var date = storageGet("date");
     var confirm_result = await confirmBookingApi(date.value, assignment.eWebRecordID);
+    storageSet("provided_availability", true);
     chatWindow.talk(specificDateAvailability(
         {
             date: storageGet("date").name,
@@ -240,18 +277,27 @@ async function confirm_school(index){
         ), "school_confirm");
 
 };
-function getNext10Days() {
+function getNext10Days(weekday = false) {
     var days = [];
     for (var i = 0; i <= 9; i++) {
         var date = new Date();
         date.setDate(date.getDate() + i);
         
         var dayName = date.toLocaleDateString("en-US", { month: 'short', day: 'numeric' }); // e.g., "Dec 20"
-        var dayValue = date.toISOString().split('T')[0]; // Format: "2023-12-20"
+        var dayValue = localDateString(date);
 
-        days.push({ name: prettyDate(dayValue), value: dayValue });
+        days.push({ name: prettyDate(dayValue, weekday), value: dayValue });
     }
     return days;
+}
+
+
+function localDateString(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based, so we add 1
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
 }
 
 var next10Days = getNext10Days();

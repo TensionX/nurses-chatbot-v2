@@ -228,5 +228,6 @@ async function haveConflict(){
 
 async function scheduledFor(date){
     var result = await scheduleStatusApi({"from": date, "to": date});
-    return result.length ? true : false;
+    console.log(result);
+    return result.length ? result : false;
 }

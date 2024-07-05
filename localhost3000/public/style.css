@@ -60,13 +60,13 @@
     padding: 10px;
     margin-top: 10px;
     border: none;
-    background-color: #4CAF50; /* Green */
+    background-color: rgb(2, 33, 96); /* Green */
     color: white;
     cursor: pointer;
 }
 
 #cancelTime {
-    background-color: #f44336; /* Red */
+    background-color: #cccccc; /* Red */
 }
 
 
@@ -91,7 +91,7 @@
 
 /* Specific styles for confirm and cancel buttons */
 .confirm-button {
-    background-color: #4CAF50; /* Green */
+    background-color: rgb(2, 33, 96); /* Green */
     transition: 0.3s all;
 }
 .confirm-button:disabled {
@@ -100,7 +100,7 @@
     color: #666666; /* Darker text color for better readability */
 }
 .cancel-button {
-    background-color: #f44336; /* Red */
+    background-color: #666666; /* Red */
 }
 
 /* Additional styling for textarea */

@@ -27,9 +27,7 @@ function callingOutAbsenceLogic({school, time, assignments, date}){
         
         "not_scheduled": {
             says: [
-                `You are not scheduled to work at any school within the next 10 days.`,
-                `Call the school nursing line at xxx-xxx-xxxx if you have any questions.`,
-                `Thank you from RCM Health Care Services.`
+                `You are not scheduled to work at any school within the next 10 days.<br><br>Please contact your recruiter if you have any questions.`
             ],
             reply: [
                 { question: "Start over", answer: "start_over", },
@@ -51,7 +49,7 @@ function callingOutAbsenceLogic({school, time, assignments, date}){
             ]
         },
         "absence_confirm":{
-            says: [`Please confirm that you are calling out absent from ${school} on ${prettyDate(date)}`],
+            says: [`Please confirm that you are calling out absent from ${school} ${(prettyDate(date)?.toLowerCase() == "today" || prettyDate(date)?.toLowerCase() == "tomorrow") ? prettyDate(date) : `on ${prettyDate(date)}`}`],
             reply: [
                 {question: "Yes, I confirm", answer: "confirm_absence"},
                 {question: "No, go back", answer: "select_absent_date"}
@@ -59,8 +57,8 @@ function callingOutAbsenceLogic({school, time, assignments, date}){
         },
         "absence_confirmation_success": {
             says: [
-                `You have successfully called out absent from ${school} on ${prettyDate(date)}.`,
-                `Are you calling out absent for any other dates?`
+                `You have successfully called out absent from ${school} ${(prettyDate(date)?.toLowerCase() == "today" || prettyDate(date)?.toLowerCase() == "tomorrow") ? prettyDate(date) : `on ${prettyDate(date)}`}.
+                <br><br>Are you calling out absent for any other dates?`,
             ],
             reply: [
                 { question: "Yes", answer: "select_absent_date" },
@@ -79,8 +77,7 @@ function callingOutAbsenceLogic({school, time, assignments, date}){
         },
         "exit": {
             says: [
-                ...(storageGet("called_out_absent") == true ? [] : [`You have NOT called out for any assignments.`]),
-                `Thank you from RCM Health Care Services`
+                ...(storageGet("called_out_absent") == true ? [] : [`You have <b>NOT</b> called out for any assignments.`])
             ],
             reply: [
                 {question: "Start over", answer: "start_over"},
@@ -89,7 +86,8 @@ function callingOutAbsenceLogic({school, time, assignments, date}){
             // End of flow
         },
         "call_in_success": {
-            says: [`Got it. You have successfully called in attendance at ${school}.Have a great day!`],
+            says: [`Got it. You have successfully called in attendance at ${school}.
+                <br><br>Have a great day!`],
             reply: [
                 {question: "Start over", answer: "start_over"},
                 {question: "Log out", answer: "log_out"},
@@ -106,6 +104,7 @@ async function confirm_absence(){
 
     //This is where we call API to confirm absence
     var result = await callOutAbsenceApi(selected_assignment.date, "");
+    console.log(selected_assignment);
     storageSet("called_out_absent", true);
     chatWindow.talk(callingOutAbsenceLogic({
         assignments: await get_existing_assignments(),
@@ -210,6 +209,9 @@ async function get_existing_assignments(storage=false){
     assignments = await scheduleStatusApi({"from": today(), "to": today(10)});
     assignments = assignments.slice(0, 8);
 
+    //Order by date
+    assignments = assignments.sort((a, b) => new Date(a.date) - new Date(b.date));
+
     console.log(assignments);
     //This is a real query
     //var assignments = await scheduleStatusApi({"from": today(), "to": today(7)});
@@ -221,6 +223,7 @@ async function get_existing_assignments(storage=false){
             date: el.date
         }
     });
+    console.log(assignments);
     console.log(assignments);
     storageSet("existing_assignments", assignments);
     return assignments;

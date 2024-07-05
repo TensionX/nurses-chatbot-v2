@@ -156,7 +156,7 @@ function Bubbles(container, self, options) {
         })(turn.reply[i], i)
       }
     }
-    orderBubbles(turn.says, function() {
+    orderBubbles(turn.says.filter(el => el != ""), function() {
       bubbleTyping.classList.remove("imagine")
       questionsHTML !== ""
         ? addBubble(questionsHTML, function() {}, "reply")

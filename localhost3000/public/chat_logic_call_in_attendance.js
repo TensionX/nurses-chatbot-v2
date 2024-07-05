@@ -36,8 +36,8 @@ function callingInAttendanceLogic({school, time}){
         },
         "call_out_instead": {
             says: [
-                `You are scheduled to work at ${school} today.`,
-                `Are you instead calling out absent?`
+                `You are scheduled to work at ${school} today.
+                <br><br>Are you instead calling out absent?`,
             ],
             reply: [
                 { question: "Yes", answer: "reportAbsence" },
@@ -47,8 +47,7 @@ function callingInAttendanceLogic({school, time}){
         
         "not_scheduled": {
             says: [
-                `You are not scheduled to work at any school today.`,
-                `Please contact the school nursing line at xxx-xxxxxxx if you have any questions.`
+                `You are not scheduled to work at any school today.<br><br>Please contact your recruiter if you have any questions.`,
             ],
             reply: [
                 {question: "Start over", answer: "start_over"},
@@ -66,8 +65,8 @@ function callingInAttendanceLogic({school, time}){
         // },
         "exit": {
             says: [
-                `OK. You have NOT called in attendance for today .`,
-                `If there is an issue, please contact the school nursing line at xxx.xxx.xxxx`
+                `OK. You have <b>NOT</b> called in attendance for today.
+                <br><br>If there is an issue, please contact your recruiter ASAP.`,
             ],
             reply: [
                 {question: "Start over", answer: "start_over"},
@@ -77,8 +76,8 @@ function callingInAttendanceLogic({school, time}){
         },
         "call_in_success": {
             says: [
-                `Got it. You have successfully called in attendance at ${school}.`,
-                `Have a great day!`
+                `Got it. You have successfully called in attendance at ${school}.
+                <br><br>Have a great day!`,
             ],
             reply: [
                 {question: "Start over", answer: "start_over"},
