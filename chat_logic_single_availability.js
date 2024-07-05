@@ -188,7 +188,7 @@ async function another_borough(){
         ), "boroughs_select");
 }
 async function confirm_specific_date(index){
-    var scheduled = await scheduledFor(today());
+    var scheduled = await scheduledFor(getNext10Days()[index].value);
     if(scheduled){
         scheduled = scheduled[0];
         return chatWindow.talk(specificDateAvailability({date: scheduled.date, school: scheduled.scheduledWork.school_name }), "already_scheduled");
