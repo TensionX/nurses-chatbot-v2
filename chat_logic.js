@@ -1,7 +1,9 @@
 // Declare chatWindow at the top level so it's accessible throughout the script
 var chatWindow;
 var chatLogic;
+var scheduled_today;
 async function init(){
+    storageSet("provided_availability", false);
     chatWindow = new Bubbles(document.getElementById("chat"), "chatWindow");
 
 
@@ -16,25 +18,33 @@ async function init(){
         var scheduled = await scheduledFor(today());
         var scheduledText = "";
         if(scheduled){
+            scheduled_today = true;
             var data = (await scheduleStatusApi({"from":  today(), "to": today()}))[0];
-            scheduledText = `You are confirmed at ${data.scheduledWork.school_name} today. The address is ${data.scheduledWork.school_address} and the hours are unknown through unknown.`
+            scheduledText = `You are confirmed at ${data.scheduledWork.school_name} today. <br><br>The address is ${data.scheduledWork.school_address} and the hours are ${data.scheduledWork.StartTime || "unknown"} through ${data.scheduledWork.EndTime || "unknown"}.<br><br>`
+        }else{
+            scheduled_today = false;
+            scheduledText = `You are <b>NOT</b> scheduled to work at any school today. <br><br>`;
         }
 
 
         chatLogic = {
             ice: {
-                says: [`Hello, ${storageGet("user_name") || "Dear User"}! ${scheduledText}Please select from the following:`],
+                says: [`Hello, ${storageGet("user_name") || "Dear User"}! <br><br>${scheduledText}
+                    
+                    Please select from the following:`],
                 reply: [
-                    {question: "Providing Availability", answer: "provideAvailability"},
-                    {question: "Calling Out Absent", answer: "reportAbsence"},
                     {question: "Calling In Attendance", answer: "callInAttendance"},
-                    {question: "Done/Exit", answer: "exit"},
+                    {question: "Calling Out Absent", answer: "reportAbsence"},
+                    {question: "Providing Availability", answer: "specificDate"},
+                    
+                    
+                    {question: "Done / Exit", answer: "exit"},
                     
                     
                 ]
             },
             provideAvailability: {
-                says: ["Would you like to provide availability for a specific date or recurring days?"],
+                says: ["Are you providing availability for a SPECIFIC DATE or RECURRING ASSIGNMENT?"],
                 reply: [
                     {question: "Specific Date", answer: "specificDate"},
                     {question: "Recurring Days", answer: "recurringDays"},
@@ -45,6 +55,22 @@ async function init(){
                     
                 ]
             },
+            provideAvailability_notscheduled: {
+                says: [
+                    `Hello, ${storageGet("user_name") || "Dear User"}!<br></br>You are <b>NOT</b> scheduled to work at any school today. <br><br>`,
+                    "Are you providing availability for a SPECIFIC DATE?"
+                ],
+                reply: [
+                    {question: "Yes", answer: "specificDate"},
+                    // {question: "Recurring Days", answer: "recurringDays"},
+                    {question: "No / Exit", answer: "exit_end"},
+                    
+                    
+                    
+                    
+                ]
+            },
+
             recurringDays: {
                 says: ["Which weekday are you looking for a recurring assignment?"],
                 reply: [
@@ -70,9 +96,19 @@ async function init(){
                 
                 ]
             },
+            exit_end: {
+                says: ["Thank you from RCM Health Care Services."],
+                
+            },
             // Continue defining other states based on your document
         };
-        chatWindow.talk(chatLogic);
+
+        if(scheduled_today){
+            chatWindow.talk(chatLogic);    
+        }else{
+            chatWindow.talk(chatLogic, "provideAvailability_notscheduled");
+        }
+        
     }else{
         showLogin();
     }
